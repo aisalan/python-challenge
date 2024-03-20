@@ -2,44 +2,64 @@
 import os
 import csv
 
-#define the file path
-PyBankcsv = os.path.join(".", "budget_data.csv")
-
+#define file path
+election_data_csv = "election_data.csv"
+output_file = "election_results.txt"
+PyPollcsv = os.path.join(".", "election_data.csv")
 
 #variables
-total_months = 0
-net_total = 0
-profit_losses = []
-dates = []
+data = []
+total_votes = 0
+candidates = {}
+winner = ""
+max_votes = 0
 
 #load the data from the csv file
-data = []
-with open(PyBankcsv, "r") as csvfile:
+with open(PyPollcsv, "r") as csvfile:
     csvreader = csv.reader(csvfile, delimiter=",")
     header = next(csvreader)
-    
-    #iteration
+
+#iteration
     for row in csvreader:
-        total_months += 1
-        net_total += int(row[1])
-        profit_losses.append(int(row[1]))
-        dates.append(row[0])
+        total_votes += 1
+        candidate_name = row[2]
 
-#track the monthly changes
-        changes = [profit_losses[i + 1] - profit_losses[i] for i in range(len(profit_losses) - 1)]
-average_change = sum(changes) / len(changes)
+        if candidate_name in candidates:
+            candidates[candidate_name] += 1
+        else:
+            candidates[candidate_name] = 1
 
-greatest_increase = max(changes)
-greatest_increase_date = dates[changes.index(greatest_increase) + 1]
+#%calculation
+candidate_percentages = {candidate: (votes / total_votes) * 100 for candidate, votes in candidates.items()}
 
-greatest_decrease = min(changes)
-greatest_decrease_date = dates[changes.index(greatest_decrease)]
+#finding the winner
+for candidate, votes in candidates.items():
+    if votes > max_votes:
+        max_votes = votes
+        winner = candidate
 
-#calculation
-print("Financial Analysis")
-print("----------------------------")
-print(f"Total Months: {total_months}")
-print(f"Total: ${net_total}")
-print(f"Average Change: ${average_change:.2f}")
-print(f"Greatest Increase in Profits: {greatest_increase_date} (${greatest_increase})")
-print(f"Greatest Decrease in Profits: {greatest_decrease_date}")
+# to print results in terminal
+print("Election Results")
+print("-------------------------")
+print(f"Total Votes: {total_votes}")
+print("-------------------------")
+for candidate, votes in candidates.items():
+    print(f"{candidate}: {candidate_percentages[candidate]:.3f}% ({votes})")
+print("-------------------------")
+print(f"Winner: {winner}")
+print("-------------------------")
+
+# Write results to a text file
+with open(output_file, 'w') as txtfile:
+    txtfile.write("Election Results\n")
+    txtfile.write("-------------------------\n")
+    txtfile.write(f"Total Votes: {total_votes}\n")
+    txtfile.write("-------------------------\n")
+    for candidate, votes in candidates.items():
+        txtfile.write(f"{candidate}: {candidate_percentages[candidate]:.3f}% ({votes})\n")
+    txtfile.write("-------------------------\n")
+    txtfile.write(f"Winner: {winner}\n")
+    txtfile.write("-------------------------\n")
+
+# Print confirmation message
+print(f"Election results have been exported to '{output_file}'.")
